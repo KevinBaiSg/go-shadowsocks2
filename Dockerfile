@@ -7,12 +7,17 @@ RUN apk upgrade \
 
 FROM alpine:3.8
 
-LABEL maintainer="mritd <mritd1234@gmail.com>"
+LABEL maintainer="Kevin Bai <kevin.bai.sin@gmail.com>"
 
 RUN apk upgrade \
     && apk add bash tzdata \
     && rm -rf /var/cache/apk/*
 
 COPY --from=builder /go/bin/go-shadowsocks2 /usr/bin/shadowsocks
+COPY start.sh /start.sh
 
-ENTRYPOINT ["shadowsocks"]
+ENV SS_PASSWORD password
+ENV SS_METHOD aes-128-cfb
+
+EXPOSE 8558
+CMD ["sh", "start.sh"]
