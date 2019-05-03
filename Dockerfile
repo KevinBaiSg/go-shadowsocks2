@@ -5,7 +5,7 @@ WORKDIR /shadowsocks2
 COPY . .
 
 RUN apk add git \
-    && go build -ldflags '-w -s' -o shadowsocks2
+    && CGO_ENABLED=0 go build -ldflags '-w -s' -o shadowsocks2
 
 FROM alpine:3.9
 
@@ -17,14 +17,12 @@ RUN apk upgrade \
     && apk add bash tzdata \
     && rm -rf /var/cache/apk/*
 
-COPY --from=builder /shadowsocks2/shadowsocks2 /usr/bin/shadowsocks
-COPY dockerstart.sh /shadowsocks2/start.sh
+COPY --from=builder /shadowsocks2/shadowsocks2 /usr/bin/shadowsocks2
+COPY defaultstart.sh /shadowsocks2/start.sh
 
 ENV SS_PASSWORD password
-ENV SS_METHOD aes-128-cfb
+ENV SS_METHOD aes-256-cfb
 
 WORKDIR /shadowsocks2
-
-EXPOSE 8080
 
 CMD ["sh", "start.sh"]
