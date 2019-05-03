@@ -1,23 +1,30 @@
-FROM golang:1.11.3-alpine3.8 AS builder
+FROM golang:1.12.4-alpine3.9 AS builder
 
-RUN apk upgrade \
-    && apk add git \
-    && go get -ldflags '-w -s' \
-        github.com/shadowsocks/go-shadowsocks2
+WORKDIR /shadowsocks2
 
-FROM alpine:3.8
+COPY . .
 
+RUN apk add git \
+    && go build -ldflags '-w -s' -o shadowsocks2
+
+FROM alpine:3.9
+
+LABEL Version="1.0"
+LABEL Author="Kevin Bai"
 LABEL maintainer="Kevin Bai <kevin.bai.sin@gmail.com>"
 
 RUN apk upgrade \
     && apk add bash tzdata \
     && rm -rf /var/cache/apk/*
 
-COPY --from=builder /go/bin/go-shadowsocks2 /usr/bin/shadowsocks
-COPY start.sh /start.sh
+COPY --from=builder /shadowsocks2/shadowsocks2 /usr/bin/shadowsocks
+COPY dockerstart.sh /shadowsocks2/start.sh
 
 ENV SS_PASSWORD password
 ENV SS_METHOD aes-128-cfb
 
-EXPOSE 8558
+WORKDIR /shadowsocks2
+
+EXPOSE 8080
+
 CMD ["sh", "start.sh"]
